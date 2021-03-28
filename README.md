@@ -1,4 +1,7 @@
 # King's BOT
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=KingnaldoJr_kingsbot&metric=alert_status)](https://sonarcloud.io/dashboard?id=KingnaldoJr_kingsbot)
+![fluxo de trabalho de exemplo](https://github.com/KingnaldoJr/kingsbot/actions/workflows/gradle.yml/badge.svg)
+
 King's BOT is a multi proposal Discord BOT.
 This BOT still in development, developed with [Discord4J](https://discord4j.com/) and [Spring Boot](https://spring.io/projects/spring-boot).
 
@@ -18,7 +21,7 @@ Set this environment variables:
 
 Running the BOT:
 ```cmd
-java -jar kingsbot-0.0.1.jar
+java -jar kingsbot.jar
 ```
 
 ## Commands
