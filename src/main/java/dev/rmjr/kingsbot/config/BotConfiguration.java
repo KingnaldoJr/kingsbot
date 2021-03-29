@@ -31,10 +31,11 @@ public class BotConfiguration {
             return null;
         }
 
-        eventListeners.forEach(listener -> client.getEventDispatcher().on(listener.getEventType())
-                .flatMap(listener::execute)
-                .onErrorResume(listener::handleError)
-                .subscribe());
+        eventListeners.forEach(listener ->
+                client.getEventDispatcher().on(listener.getEventType())
+                        .flatMap(listener::execute)
+                        .onErrorResume(listener::handleError)
+                        .subscribe());
 
         return client;
     }
