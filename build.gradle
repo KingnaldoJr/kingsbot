@@ -43,6 +43,7 @@ sonarqube {
         property 'sonar.projectKey', 'KingnaldoJr_kingsbot'
         property 'sonar.organization', 'kingnaldojr'
         property 'sonar.host.url', 'https://sonarcloud.io'
-        property 'sonar.java.binaries', 'build/classes'
+        property 'sonar.java.binaries', 'build/classes/java/main'
+        property 'sonar.java.test.binaries', 'build/classes/java/test'
     }
 }
