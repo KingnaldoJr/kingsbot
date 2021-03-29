@@ -29,8 +29,9 @@ public class MessageCreateListener implements EventListener<MessageCreateEvent> 
     @Override
     public <E extends Event> Mono<Void> execute(E event) {
         return Mono.just(((MessageCreateEvent) event).getMessage())
-                .filter(message -> message.getAuthor().map(author -> !author.isBot()).orElse(false))
                 .filter(message -> message.getContent().startsWith(prefix))
+                .switchIfEmpty(Mono.empty())
+                .filter(message -> message.getAuthor().map(author -> !author.isBot()).orElse(false))
                 .flatMap(message -> this.executeCommand(message, (MessageCreateEvent) event));
     }
 
