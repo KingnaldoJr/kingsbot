@@ -1,8 +1,9 @@
 plugins {
     id 'org.springframework.boot' version '2.4.4'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'java'
     id 'org.sonarqube' version '3.1.1'
+    id 'jacoco'
+    id 'java'
 }
 
 group = 'dev.rmjr'
@@ -39,12 +40,22 @@ test {
     useJUnitPlatform()
 }
 
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        xml.destination file("${buildDir}/jacoco-xml/jacoco.xml")
+    }
+}
+
 sonarqube {
     properties {
         property 'sonar.projectKey', 'KingnaldoJr_kingsbot'
         property 'sonar.organization', 'kingnaldojr'
         property 'sonar.host.url', 'https://sonarcloud.io'
-        property 'sonar.java.binaries', 'build/classes/java/main'
-        property 'sonar.java.test.binaries', 'build/classes/java/test'
+        property 'sonar.coverage.jacoco.xmlReportPaths', "${buildDir}/jacoco-xml/jacoco.xml"
     }
+}
+
+tasks.withType(Test) {
+    finalizedBy('jacocoTestReport')
 }
