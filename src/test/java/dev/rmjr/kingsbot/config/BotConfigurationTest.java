@@ -10,6 +10,7 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.EventDispatcher;
 import discord4j.core.event.domain.Event;
 import discord4j.rest.request.RouterOptions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -32,13 +33,17 @@ class BotConfigurationTest {
     @InjectMocks
     BotConfiguration botConfiguration;
 
+    @BeforeEach
+    void mockToken() {
+        ReflectionTestUtils.setField(botConfiguration, "token", "");
+    }
+
     @Test
     void gatewayDiscordClientNullReturnTest() {
         try(MockedStatic<DiscordClientBuilder> clientBuilder = mockStatic(DiscordClientBuilder.class)) {
             DiscordClientBuilder<DiscordClient, RouterOptions> builderMock = mock(DiscordClientBuilder.class);
             DiscordClient clientMock = mock(DiscordClient.class);
 
-            ReflectionTestUtils.setField(botConfiguration, "token", "");
             clientBuilder.when(() -> DiscordClientBuilder.create(anyString())).thenReturn(builderMock);
             when(builderMock.build()).thenReturn(clientMock);
             when(clientMock.login()).thenReturn(Mono.empty());
@@ -56,7 +61,6 @@ class BotConfigurationTest {
             DiscordClient clientMock = mock(DiscordClient.class);
             GatewayDiscordClient expectedGateway = mock(GatewayDiscordClient.class);
 
-            ReflectionTestUtils.setField(botConfiguration, "token", "");
             clientBuilder.when(() -> DiscordClientBuilder.create(anyString())).thenReturn(builderMock);
             when(builderMock.build()).thenReturn(clientMock);
             when(clientMock.login()).thenReturn(Mono.just(expectedGateway));
@@ -78,7 +82,6 @@ class BotConfigurationTest {
             MessageCreateListener messageListener = new MessageCreateListener(List.of(new PingCommand()));
             List<EventListener<? extends Event>> eventListeners = List.of(messageListener);
 
-            ReflectionTestUtils.setField(botConfiguration, "token", "");
             clientBuilder.when(() -> DiscordClientBuilder.create(anyString())).thenReturn(builderMock);
             when(builderMock.build()).thenReturn(clientMock);
             when(clientMock.login()).thenReturn(Mono.just(expectedGateway));
@@ -88,7 +91,7 @@ class BotConfigurationTest {
 
             GatewayDiscordClient actualClient = botConfiguration.gatewayDiscordClient(eventListeners);
 
-            verify(eventDispatcherMock, times(1)).on(eq(messageListener.getEventType()));
+            verify(eventDispatcherMock, times(1)).on(messageListener.getEventType());
             assertEquals(expectedGateway, actualClient);
         }
     }
