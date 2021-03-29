@@ -28,14 +28,13 @@ public class MessageCreateListener implements EventListener<MessageCreateEvent> 
 
     @Override
     public <E extends Event> Mono<Void> execute(E event) {
-        MessageCreateEvent messageCreateEvent = (MessageCreateEvent) event;
-        return Mono.just(messageCreateEvent.getMessage())
+        return Mono.just(((MessageCreateEvent) event).getMessage())
                 .filter(message -> message.getAuthor().map(author -> !author.isBot()).orElse(false))
                 .filter(message -> message.getContent().startsWith(prefix))
-                .flatMap(message -> this.executeCommand(message, messageCreateEvent));
+                .flatMap(message -> this.executeCommand(message, (MessageCreateEvent) event));
     }
 
-    private Mono<Void> executeCommand(Message message, MessageCreateEvent event) {
+    protected Mono<Void> executeCommand(Message message, MessageCreateEvent event) {
         String[] messageSplit = message.getContent().substring(1).split(" ", 2);
 
         return commands.stream()
