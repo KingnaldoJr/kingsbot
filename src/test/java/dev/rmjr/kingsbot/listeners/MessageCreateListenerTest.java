@@ -16,6 +16,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -99,5 +101,76 @@ class MessageCreateListenerTest {
         verify(messageMock, times(1)).getContent();
         verify(listener, times(0))
                 .executeCommand(any(Message.class), any(MessageCreateEvent.class));
+    }
+
+    @Test
+    void executeCommandWithNameTest() {
+        MessageCreateEvent eventMock = mock(MessageCreateEvent.class);
+        Message messageMock = mock(Message.class);
+        Command commandMock = mock(Command.class);
+
+        when(messageMock.getContent()).thenReturn(".ping");
+        when(commands.stream()).thenReturn(Stream.of(commandMock));
+        when(commandMock.getName()).thenReturn("ping");
+
+        listener.executeCommand(messageMock, eventMock);
+
+        verify(commandMock, times(1)).execute(List.of(), eventMock);
+    }
+
+    @Test
+    void executeCommandWithAliasesTest() {
+        MessageCreateEvent eventMock = mock(MessageCreateEvent.class);
+        Message messageMock = mock(Message.class);
+        Command commandMock = mock(Command.class);
+
+        when(messageMock.getContent()).thenReturn(".p");
+        when(commands.stream()).thenReturn(Stream.of(commandMock));
+        when(commandMock.getName()).thenReturn("ping");
+        when(commandMock.getAliases()).thenReturn(Set.of("p"));
+
+        listener.executeCommand(messageMock, eventMock);
+
+        verify(commandMock, times(1)).execute(List.of(), eventMock);
+    }
+
+    @Test
+    void executeCommandWithNameAndArgsTest() {
+        MessageCreateEvent eventMock = mock(MessageCreateEvent.class);
+        Message messageMock = mock(Message.class);
+        Command commandMock = mock(Command.class);
+
+        when(messageMock.getContent()).thenReturn(".ping rmjr.dev");
+        when(commands.stream()).thenReturn(Stream.of(commandMock));
+        when(commandMock.getName()).thenReturn("ping");
+
+        listener.executeCommand(messageMock, eventMock);
+
+        verify(commandMock, times(1)).execute(List.of("rmjr.dev"), eventMock);
+    }
+
+    @Test
+    void executeCommandWithoutMatchesTest() {
+        MessageCreateEvent eventMock = mock(MessageCreateEvent.class);
+        Message messageMock = mock(Message.class);
+        Command commandMock = mock(Command.class);
+
+        when(messageMock.getContent()).thenReturn(".ping");
+        when(commands.stream()).thenReturn(Stream.of(commandMock));
+        when(commandMock.getName()).thenReturn("pong");
+
+        Mono<Void> actualMono = listener.executeCommand(messageMock, eventMock);
+
+        verify(commandMock, times(0)).execute(List.of(), eventMock);
+        assertEquals(Mono.empty(), actualMono);
+    }
+
+    @Test
+    void handleErrorTest() {
+        Mono<Void> expectedMono = Mono.empty();
+
+        Mono<Void> actualMono = listener.handleError(new Throwable());
+
+        assertEquals(expectedMono, actualMono);
     }
 }
