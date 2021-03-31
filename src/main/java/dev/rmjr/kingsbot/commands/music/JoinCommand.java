@@ -6,6 +6,7 @@ import dev.rmjr.kingsbot.music.PlayersManager;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.VoiceState;
 import discord4j.core.object.entity.Member;
+import discord4j.voice.VoiceConnection;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -40,7 +41,12 @@ public class JoinCommand implements Command {
                 .flatMap(Member::getVoiceState)
                 .flatMap(VoiceState::getChannel)
                 .flatMap(channel -> PlayersManager.getMusicManager(event.getGuild())
-                        .flatMap(musicManager -> channel.join(spec -> spec.setProvider(musicManager.getProvider()))))
+                        .flatMap(musicManager -> {
+                            Mono<VoiceConnection> connection =
+                                    channel.join(spec -> spec.setProvider(musicManager.getProvider()));
+                            musicManager.setVoiceConnection(connection);
+                            return connection;
+                        }))
                 .then();
     }
 }
