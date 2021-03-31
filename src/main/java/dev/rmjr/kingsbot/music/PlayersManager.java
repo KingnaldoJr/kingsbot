@@ -9,12 +9,15 @@ import com.sedmelluq.discord.lavaplayer.track.playback.NonAllocatingAudioFrameBu
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class PlayersManager {
+    private PlayersManager() {}
+
     private static final AudioPlayerManager PLAYER_MANAGER = new DefaultAudioPlayerManager();
     private static final Map<Snowflake, GuildMusicManager> PLAYERS = new ConcurrentHashMap<>();
 
@@ -25,23 +28,28 @@ public class PlayersManager {
         AudioSourceManagers.registerRemoteSources(PLAYER_MANAGER);
     }
 
-    public GuildMusicManager getMusicManager(Guild guild) {
-        if(!PLAYERS.containsKey(guild.getId())) {
-            AudioPlayer player = PLAYER_MANAGER.createPlayer();
-            PLAYERS.put(guild.getId(), new GuildMusicManager(player, new LavaPlayerAudioProvider(player)));
-        }
+    public static Mono<GuildMusicManager> getMusicManager(Mono<Guild> guild) {
+        return guild.flatMap(g -> {
+            if(!PLAYERS.containsKey(g.getId())) {
+                AudioPlayer player = PLAYER_MANAGER.createPlayer();
+                PLAYERS.put(g.getId(), new GuildMusicManager(player, new LavaPlayerAudioProvider(player)));
+            }
 
-        return PLAYERS.get(guild.getId());
+            return Mono.just(PLAYERS.get(g.getId()));
+        });
     }
 
-    protected AudioPlayer createPlayer() {
+    protected static AudioPlayer createPlayer() {
         AudioPlayer player = PLAYER_MANAGER.createPlayer();
         player.addListener(new PlayerManager(player));
         return player;
     }
 
-    public void removeMusicManager(Guild guild) {
-        PLAYERS.get(guild.getId()).getPlayer().destroy();
-        PLAYERS.remove(guild.getId());
+    public static Mono<Void> removeMusicManager(Mono<Guild> guildMono) {
+        return guildMono.flatMap(guild -> {
+            PLAYERS.get(guild.getId()).getPlayer().destroy();
+            PLAYERS.remove(guild.getId());
+            return Mono.empty();
+        });
     }
 }
