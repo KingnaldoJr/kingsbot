@@ -1,5 +1,5 @@
 package dev.rmjr.kingsbot.commands;
 
 public enum CommandCategory {
-    UTILS
+    UTILS, MUSIC
 }
