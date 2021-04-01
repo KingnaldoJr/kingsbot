@@ -1,7 +1,6 @@
 package dev.rmjr.kingsbot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioConfiguration;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
@@ -33,18 +32,8 @@ public class PlayersManager {
     }
 
     public static Mono<GuildMusicManager> getMusicManager(Guild guild) {
-        if(!PLAYERS.containsKey(guild.getId())) {
-            AudioPlayer player = PLAYER_MANAGER.createPlayer();
-            PLAYERS.put(guild.getId(), new GuildMusicManager(player));
-        }
-
-        return Mono.just(PLAYERS.get(guild.getId()));
-    }
-
-    protected static AudioPlayer createPlayer() {
-        AudioPlayer player = PLAYER_MANAGER.createPlayer();
-        player.addListener(new PlayerManager(player));
-        return player;
+        return Mono.just(PLAYERS.computeIfAbsent(guild.getId(),
+                id -> new GuildMusicManager(PLAYER_MANAGER.createPlayer())));
     }
 
     public static Mono<Void> removeMusicManager(Mono<Guild> guildMono) {
