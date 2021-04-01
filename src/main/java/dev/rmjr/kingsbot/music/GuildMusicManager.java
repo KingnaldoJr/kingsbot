@@ -30,6 +30,13 @@ public class GuildMusicManager {
                 .doOnNext(connection -> this.voiceConnection = connection);
     }
 
+    public Mono<Void> leaveChannel(VoiceChannel channel) {
+        return voiceConnection.getChannelId()
+                .filter(id -> channel.getId().equals(id))
+                .flatMap(id -> voiceConnection.disconnect())
+                .switchIfEmpty(Mono.empty());
+    }
+
     public Mono<Void> playItem(VoiceChannel channel, List<String> args) {
         if(voiceConnection == null) { joinChannel(channel).subscribe(); }
 
