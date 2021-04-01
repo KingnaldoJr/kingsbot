@@ -1,9 +1,9 @@
 package dev.rmjr.kingsbot.music;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.player.event.*;
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.player.event.AudioEvent;
+import com.sedmelluq.discord.lavaplayer.player.event.AudioEventListener;
+import com.sedmelluq.discord.lavaplayer.player.event.TrackEndEvent;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @RequiredArgsConstructor
-public class PlayerManager implements AudioEventListener, AudioLoadResultHandler {
+public class PlayerManager implements AudioEventListener {
     private final List<AudioTrack> queue = new CopyOnWriteArrayList<>();
     private final AudioPlayer player;
-    private int position = 0;
+    private int position = -1;
 
     public void previousTrack() {
         player.startTrack(queue.get(--position), false);
@@ -27,49 +27,36 @@ public class PlayerManager implements AudioEventListener, AudioLoadResultHandler
     }
 
     public void nextTrack() {
-        player.startTrack(queue.get(++position), false);
+        if(position >= queue.size() - 1) { return; }
+        player.playTrack(queue.get(++position));
     }
 
-    private void onTrackEnd(AudioPlayer player, AudioTrackEndReason reason) {
-        if(!reason.mayStartNext) {
-            player.stopTrack();
-            return;
-        }
-        nextTrack();
+    protected void checkIfPlayingAndPlay() {
+        if(player.getPlayingTrack() == null) { nextTrack(); }
+    }
+
+    public void addTrack(AudioTrack track) {
+        queue.add(track);
+        checkIfPlayingAndPlay();
+    }
+
+    public void addPlaylist(AudioPlaylist playlist) {
+        if(playlist.isSearchResult()) {
+            queue.add(playlist.getTracks().get(0));
+        }else{ queue.addAll(playlist.getTracks()); }
+
+        checkIfPlayingAndPlay();
     }
 
     @Override
     public void onEvent(AudioEvent event) {
         if(event instanceof TrackEndEvent) {
-            onTrackEnd(event.player, ((TrackEndEvent) event).endReason);
+            onTrackEnd(((TrackEndEvent) event).endReason);
         }
     }
 
-    @Override
-    public void trackLoaded(AudioTrack track) {
-        if(!player.startTrack(track, true)) { queue.add(track); }
-    }
-
-    @Override
-    public void playlistLoaded(AudioPlaylist playlist) {
-        if(playlist.getTracks().isEmpty()) { return; }
-
-        AudioTrack track = playlist.getSelectedTrack() == null ?
-                playlist.getTracks().get(0) :
-                playlist.getSelectedTrack();
-
-        if(!player.startTrack(track, true)) { queue.add(track); }
-        playlist.getTracks().remove(track);
-        queue.addAll(playlist.getTracks());
-    }
-
-    @Override
-    public void noMatches() {
-        // TODO
-    }
-
-    @Override
-    public void loadFailed(FriendlyException exception) {
-        // TODO
+    private void onTrackEnd(AudioTrackEndReason reason) {
+        if(!reason.mayStartNext) { player.stopTrack(); }
+        nextTrack();
     }
 }

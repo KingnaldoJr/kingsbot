@@ -13,20 +13,21 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-public class JoinCommand implements Command {
+public class PlayCommand implements Command {
+
     @Override
     public String getName() {
-        return "join";
+        return "play";
     }
 
     @Override
     public Set<String> getAliases() {
-        return Set.of("j");
+        return Set.of("p");
     }
 
     @Override
     public String getShortDescription() {
-        return "Makes the bot join your voice channel.";
+        return "Plays or add the input to queue.";
     }
 
     @Override
@@ -40,7 +41,7 @@ public class JoinCommand implements Command {
                 .flatMap(Member::getVoiceState)
                 .flatMap(VoiceState::getChannel)
                 .flatMap(channel -> PlayersManager.getMusicManager(channel.getGuild())
-                        .flatMap(manager -> manager.joinChannel(channel)))
+                        .flatMap(manager -> manager.playItem(channel, args)))
                 .then();
     }
 }

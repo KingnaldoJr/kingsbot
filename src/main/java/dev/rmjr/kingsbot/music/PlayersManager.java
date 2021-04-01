@@ -29,14 +29,16 @@ public class PlayersManager {
     }
 
     public static Mono<GuildMusicManager> getMusicManager(Mono<Guild> guild) {
-        return guild.flatMap(g -> {
-            if(!PLAYERS.containsKey(g.getId())) {
-                AudioPlayer player = PLAYER_MANAGER.createPlayer();
-                PLAYERS.put(g.getId(), new GuildMusicManager(player, new LavaPlayerAudioProvider(player)));
-            }
+        return guild.flatMap(PlayersManager::getMusicManager);
+    }
 
-            return Mono.just(PLAYERS.get(g.getId()));
-        });
+    public static Mono<GuildMusicManager> getMusicManager(Guild guild) {
+        if(!PLAYERS.containsKey(guild.getId())) {
+            AudioPlayer player = PLAYER_MANAGER.createPlayer();
+            PLAYERS.put(guild.getId(), new GuildMusicManager(player));
+        }
+
+        return Mono.just(PLAYERS.get(guild.getId()));
     }
 
     protected static AudioPlayer createPlayer() {
@@ -51,5 +53,9 @@ public class PlayersManager {
             PLAYERS.remove(guild.getId());
             return Mono.empty();
         });
+    }
+
+    protected static AudioPlayerManager getPlayerManager() {
+        return PLAYER_MANAGER;
     }
 }
