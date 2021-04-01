@@ -169,6 +169,8 @@ class MessageCreateListenerTest {
     void handleErrorTest() {
         Mono<Void> expectedMono = Mono.empty();
 
+        doReturn(MessageCreateEvent.class).when(listener).getEventType();
+
         Mono<Void> actualMono = listener.handleError(new Throwable());
 
         assertEquals(expectedMono, actualMono);
