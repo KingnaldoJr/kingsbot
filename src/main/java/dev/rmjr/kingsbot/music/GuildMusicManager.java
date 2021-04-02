@@ -31,14 +31,14 @@ public class GuildMusicManager {
     }
 
     public Mono<Void> leaveChannel(VoiceChannel channel) {
-        return voiceConnection.getChannelId()
+        return getVoiceConnection().getChannelId()
                 .filter(id -> channel.getId().equals(id))
-                .flatMap(id -> voiceConnection.disconnect())
+                .flatMap(id -> getVoiceConnection().disconnect())
                 .switchIfEmpty(Mono.empty());
     }
 
     public Mono<Void> playItem(VoiceChannel channel, List<String> args) {
-        if(voiceConnection == null) { joinChannel(channel).subscribe(); }
+        if(getVoiceConnection() == null) { joinChannel(channel).subscribe(); }
 
         if(args.isEmpty()) {
             player.setPaused(false);
