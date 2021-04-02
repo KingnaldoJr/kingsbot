@@ -8,11 +8,12 @@ import discord4j.voice.AudioProvider;
 import java.nio.ByteBuffer;
 
 public class LavaPlayerAudioProvider extends AudioProvider {
-    private final MutableAudioFrame frame = new MutableAudioFrame();
+    private final MutableAudioFrame frame;
     private final AudioPlayer player;
 
     public LavaPlayerAudioProvider(final AudioPlayer player) {
         super(ByteBuffer.allocate(StandardAudioDataFormats.DISCORD_OPUS.maximumChunkSize()));
+        this.frame = new MutableAudioFrame();
         frame.setBuffer(getBuffer());
         this.player = player;
     }
